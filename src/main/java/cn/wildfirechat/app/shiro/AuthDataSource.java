@@ -113,6 +113,7 @@ public class AuthDataSource {
 
     public PCSession getSession(String token, boolean clear) {
         PCSession session = mPCSession.get(token);
+        LOG.debug("clear====="+clear);
         if (clear) {
             mPCSession.remove(token);
         }

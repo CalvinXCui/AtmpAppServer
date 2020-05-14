@@ -7,6 +7,8 @@ import org.apache.shiro.authz.AuthorizationInfo;
 import org.apache.shiro.authz.SimpleAuthorizationInfo;
 import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.subject.PrincipalCollection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +16,8 @@ import javax.annotation.PostConstruct;
 
 @Service
 public class ScanCodeRealm extends AuthorizingRealm {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ScanCodeRealm.class);
 
     @Autowired
     AuthDataSource authDataSource;
@@ -50,7 +54,7 @@ public class ScanCodeRealm extends AuthorizingRealm {
         if (session == null) {
             throw new AuthenticationException("会话不存在");
         }
-
+        LOG.debug("session会话=="+session);
         return new SimpleAuthenticationInfo(token, token, getName());
 
     }
