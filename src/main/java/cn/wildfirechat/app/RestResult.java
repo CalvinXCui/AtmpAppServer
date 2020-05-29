@@ -15,7 +15,11 @@ public class RestResult {
         ERROR_SERVER_NOT_IMPLEMENT(11, "功能没有实现"),
         ERROR_GROUP_ANNOUNCEMENT_NOT_EXIST(12, "群公告不存在"),
         ERROR_NOT_LOGIN(13, "没有登录"),
-        ERROR_NO_RIGHT(14, "没有权限");
+        ERROR_NO_RIGHT(14, "没有权限"),
+        ERROR_DATA_EXISTS(15,"数据已存在"),
+        ERROR_DATA_NOT_EXISTS(16,"数据不存在"),
+        ERROR_USERNAME_AND_PASSWORD_NOT_EXISTS(17,"用户名或密码有误"),
+        ERROR_DATA_ERRORS(18,"无效的参数或参数有误");
         public int code;
         public String msg;
 

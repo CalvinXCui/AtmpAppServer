@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import java.util.HashSet;
+import java.util.Set;
 
 @Service
 public class ScanCodeRealm extends AuthorizingRealm {
@@ -33,10 +35,10 @@ public class ScanCodeRealm extends AuthorizingRealm {
     @Override
     protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principalCollection) {
         SimpleAuthorizationInfo info = new SimpleAuthorizationInfo();
-//        Set<String> stringSet = new HashSet<>();
-//        stringSet.add("user:show");
-//        stringSet.add("user:admin");
-//        info.setStringPermissions(stringSet);
+        Set<String> stringSet = new HashSet<>();
+        stringSet.add("user:show");
+        stringSet.add("user:admin");
+        info.setStringPermissions(stringSet);
         return info;
     }
 

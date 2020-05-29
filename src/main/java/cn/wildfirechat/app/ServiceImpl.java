@@ -3,6 +3,8 @@ package cn.wildfirechat.app;
 
 import cn.wildfirechat.app.jpa.Announcement;
 import cn.wildfirechat.app.jpa.AnnouncementRepository;
+import cn.wildfirechat.app.jpa.Users;
+import cn.wildfirechat.app.jpa.UsersRepository;
 import cn.wildfirechat.app.model.PCSession;
 import cn.wildfirechat.app.pojo.*;
 import cn.wildfirechat.app.shiro.AuthDataSource;
@@ -10,6 +12,7 @@ import cn.wildfirechat.app.shiro.TokenAuthenticationToken;
 import cn.wildfirechat.app.sms.SmsService;
 import cn.wildfirechat.app.tools.UUIDUserNameGenerator;
 import cn.wildfirechat.app.tools.Utils;
+import cn.wildfirechat.app.util.BaseUtils;
 import cn.wildfirechat.common.ErrorCode;
 import cn.wildfirechat.pojos.*;
 import cn.wildfirechat.proto.ProtoConstants;
@@ -26,13 +29,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.PostConstruct;
+import javax.validation.Valid;
 import java.io.File;
 import java.io.IOException;
-import java.util.Optional;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 import static cn.wildfirechat.app.RestResult.RestCode.*;
 
@@ -48,6 +53,9 @@ public class ServiceImpl implements Service {
 
     @Autowired
     private AnnouncementRepository announcementRepository;
+
+    @Autowired
+    private UsersRepository userRepository;
 
     @Value("${sms.super_code}")
     private String superCode;
@@ -65,6 +73,76 @@ public class ServiceImpl implements Service {
     private void init() {
         ChatConfig.initAdmin(mIMConfig.admin_url, mIMConfig.admin_secret);
     }
+
+
+    /**
+     * 根据手机号注册信息
+     *
+     * @param user
+     * @return
+     */
+    @Override
+    public RestResult registered(Users user) {
+        if(!StringUtils.equalsIgnoreCase(superCode,user.getCode())){
+            return RestResult.error(ERROR_CODE_INCORRECT);
+        }
+        List<Users> users = userRepository.findByMobileIs(user.getMobile());
+        if (users != null && !users.isEmpty()) {
+            return RestResult.error(RestResult.RestCode.ERROR_DATA_EXISTS);
+        }/**/
+        try {
+            user.setId(UUID.randomUUID().toString());
+            user.setUid(getRandomUid(8));
+            user.setAccountNumber(String.valueOf(getAccountNumberInt((int) ((Math.random() * 9 + 1) * 1000000))));
+            user.setDt("1");
+            user.setDeleted("0");
+            user.setRegister("0");
+            user.setCreateTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+            userRepository.save(user);
+            RestResult restResult = RestResult.ok(SUCCESS);
+            restResult.setResult(user);
+            return restResult;
+        } catch (Exception e) {
+            return RestResult.error(RestResult.RestCode.ERROR_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * 根据手机号修改密码
+     *
+     * @param mobile
+     * @param password
+     * @return
+     */
+    @Override
+    public RestResult updatePasswordBymobile(Users user) {
+        if(!StringUtils.equalsIgnoreCase(superCode,user.getCode())){
+            return RestResult.error(ERROR_CODE_INCORRECT);
+        }
+        List<Users> users = userRepository.findByMobileIs(user.getMobile());
+        if (users == null || users.isEmpty()) {
+            RestResult errorResult = RestResult.error(ERROR_DATA_NOT_EXISTS);
+            errorResult.setResult("用户不存在");
+            return errorResult;
+        }
+        userRepository.updatePasswordBymobile(user.getMobile(), user.getPassword().trim());
+        RestResult result = RestResult.error(SUCCESS);
+        result.setMessage("修改成功");
+        result.setResult(users);
+        return result;
+    }
+
+    /**
+     * @return
+     */
+    @Override
+    public RestResult findUserAll() {
+        List<Users> users = userRepository.findAll();
+        RestResult result = RestResult.ok(SUCCESS);
+        result.setResult(users);
+        return result;
+    }
+
 
     @Override
     public RestResult sendCode(String mobile) {
@@ -92,11 +170,89 @@ public class ServiceImpl implements Service {
         return RestResult.error(RestResult.RestCode.ERROR_SERVER_ERROR);
     }
 
+    /**
+     * 使用用户名和密码登录
+     *
+     * @param username
+     * @param password
+     * @return
+     */
     @Override
-    public RestResult login(String mobile, String code, String clientId, int platform) {
+    public RestResult passLogin(Users users) {
+        /**
+         * 查询用户是否存在
+         */
+        List<Users> userList = userRepository.findByAccountNumberAndPassword(users.getAccountNumber().trim(), users.getPassword().trim());
+
+        if (userList.size() > 0) {
+            Users user=userList.get(0);
+            Subject subject = SecurityUtils.getSubject();
+            // 在认证提交前准备 token（令牌）
+            UsernamePasswordToken token = new UsernamePasswordToken(user.getMobile(),"66666");
+            // 执行认证登陆
+            try {
+                subject.login(token);
+            } catch (UnknownAccountException uae) {
+                return RestResult.error(RestResult.RestCode.ERROR_SERVER_ERROR);
+            } catch (IncorrectCredentialsException ice) {
+                return RestResult.error(RestResult.RestCode.ERROR_CODE_INCORRECT);
+            } catch (LockedAccountException lae) {
+                return RestResult.error(RestResult.RestCode.ERROR_CODE_INCORRECT);
+            } catch (ExcessiveAttemptsException eae) {
+                return RestResult.error(RestResult.RestCode.ERROR_CODE_INCORRECT);
+            } catch (AuthenticationException ae) {
+                return RestResult.error(RestResult.RestCode.ERROR_CODE_INCORRECT);
+            }
+            if (subject.isAuthenticated()) {
+                long timeout = subject.getSession().getTimeout();
+                LOG.info("Login success " + timeout);
+            } else {
+                token.clear();
+                return RestResult.error(RestResult.RestCode.ERROR_CODE_INCORRECT);
+            }
+
+            //使用用户id获取token
+            IMResult<OutputGetIMTokenData> tokenResult = null;
+            try {
+                tokenResult = UserAdmin.getUserToken(user.getUid(), user.getClientId(), Integer.valueOf(user.getPlatform()));
+
+                if (tokenResult.getErrorCode() != ErrorCode.ERROR_CODE_SUCCESS) {
+                    LOG.error("Get user failure {}", tokenResult.code);
+                    return RestResult.error(RestResult.RestCode.ERROR_SERVER_ERROR);
+                }
+
+                subject.getSession().setAttribute("userId", user.getUid());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            //返回用户id，token和是否新建
+            LoginResponse response = new LoginResponse();
+            response.setUserId(user.getUid());
+            response.setToken(tokenResult.getResult().getToken());
+            response.setRegister(Integer.valueOf(user.getRegister())==0?true:false);
+
+            if (response.isRegister()) {
+                if (!StringUtils.isEmpty(mIMConfig.welcome_for_new_user)) {
+                    sendTextMessage(user.getUid(), mIMConfig.welcome_for_new_user);
+                }
+            } else {
+                if (!StringUtils.isEmpty(mIMConfig.welcome_for_back_user)) {
+                    sendTextMessage(user.getUid(), mIMConfig.welcome_for_back_user);
+                }
+            }
+
+            return RestResult.ok(response);
+        } else {
+            return RestResult.error(ERROR_USERNAME_AND_PASSWORD_NOT_EXISTS);
+        }
+    }
+
+    @Override
+    public RestResult login(String mobile, String password, String clientId, int platform) {
         Subject subject = SecurityUtils.getSubject();
         // 在认证提交前准备 token（令牌）
-        UsernamePasswordToken token = new UsernamePasswordToken(mobile, code);
+        UsernamePasswordToken token = new UsernamePasswordToken(mobile, password);
         // 执行认证登陆
         try {
             subject.login(token);
@@ -147,7 +303,7 @@ public class ServiceImpl implements Service {
                     LOG.info("Create user failure {}", userIdResult.code);
                     return RestResult.error(RestResult.RestCode.ERROR_SERVER_ERROR);
                 }
-            } else if(userResult.getCode() != 0){
+            } else if (userResult.getCode() != 0) {
                 LOG.error("Get user failure {}", userResult.code);
                 return RestResult.error(RestResult.RestCode.ERROR_SERVER_ERROR);
             } else {
@@ -186,6 +342,7 @@ public class ServiceImpl implements Service {
             return RestResult.error(RestResult.RestCode.ERROR_SERVER_ERROR);
         }
     }
+
 
     private void sendTextMessage(String toUser, String text) {
         Conversation conversation = new Conversation();
@@ -282,7 +439,7 @@ public class ServiceImpl implements Service {
     @Override
     public RestResult scanPc(String token) {
         Subject subject = SecurityUtils.getSubject();
-        String userId = (String)subject.getSession().getAttribute("userId");
+        String userId = (String) subject.getSession().getAttribute("userId");
         return authDataSource.scanPc(userId, token);
     }
 
@@ -293,8 +450,8 @@ public class ServiceImpl implements Service {
 
     @Override
     public RestResult getGroupAnnouncement(String groupId) {
-        Optional<Announcement>  announcement = announcementRepository.findById(groupId);
-        if (announcement.isPresent()){
+        Optional<Announcement> announcement = announcementRepository.findById(groupId);
+        if (announcement.isPresent()) {
             GroupAnnouncementPojo pojo = new GroupAnnouncementPojo();
             pojo.groupId = announcement.get().getGroupId();
             pojo.author = announcement.get().getAuthor();
@@ -310,7 +467,7 @@ public class ServiceImpl implements Service {
     public RestResult putGroupAnnouncement(GroupAnnouncementPojo request) {
         if (!StringUtils.isEmpty(request.text)) {
             Subject subject = SecurityUtils.getSubject();
-            String userId = (String)subject.getSession().getAttribute("userId");
+            String userId = (String) subject.getSession().getAttribute("userId");
             boolean isGroupMember = false;
             try {
                 IMResult<OutputGroupMemberList> imResult = GroupAdmin.getGroupMembers(request.groupId);
@@ -318,7 +475,7 @@ public class ServiceImpl implements Service {
                     for (PojoGroupMember member : imResult.getResult().getMembers()) {
                         if (member.getMember_id().equals(userId)) {
                             if (member.getType() != ProtoConstants.GroupMemberType.GroupMemberType_Removed
-                                && member.getType() != ProtoConstants.GroupMemberType.GroupMemberType_Silent) {
+                                    && member.getType() != ProtoConstants.GroupMemberType.GroupMemberType_Silent) {
                                 isGroupMember = true;
                             }
                             break;
@@ -385,7 +542,7 @@ public class ServiceImpl implements Service {
     public RestResult addDevice(InputCreateDevice createDevice) {
         try {
             Subject subject = SecurityUtils.getSubject();
-            String userId = (String)subject.getSession().getAttribute("userId");
+            String userId = (String) subject.getSession().getAttribute("userId");
 
             if (!StringUtils.isEmpty(createDevice.getDeviceId())) {
                 IMResult<OutputDevice> outputDeviceIMResult = UserAdmin.getDevice(createDevice.getDeviceId());
@@ -399,7 +556,7 @@ public class ServiceImpl implements Service {
             }
 
             IMResult<OutputCreateDevice> result = UserAdmin.createOrUpdateDevice(createDevice);
-            if (result!= null && result.getErrorCode() == ErrorCode.ERROR_CODE_SUCCESS) {
+            if (result != null && result.getErrorCode() == ErrorCode.ERROR_CODE_SUCCESS) {
                 return RestResult.ok(result.getResult());
             }
         } catch (Exception e) {
@@ -411,7 +568,7 @@ public class ServiceImpl implements Service {
     @Override
     public RestResult getDeviceList() {
         Subject subject = SecurityUtils.getSubject();
-        String userId = (String)subject.getSession().getAttribute("userId");
+        String userId = (String) subject.getSession().getAttribute("userId");
         try {
             IMResult<OutputDeviceList> imResult = UserAdmin.getUserDevices(userId);
             if (imResult != null && imResult.getErrorCode() == ErrorCode.ERROR_CODE_SUCCESS) {
@@ -421,5 +578,35 @@ public class ServiceImpl implements Service {
             e.printStackTrace();
         }
         return RestResult.error(ERROR_SERVER_ERROR);
+    }
+
+    /**
+     * 随机生成length位字符串
+     *
+     * @param length
+     * @return
+     */
+    public String getRandomUid(int length) {
+        String uId = BaseUtils.getRandomStr(length);
+        List<Users> uidList = userRepository.findByUid(uId);
+        if (uidList.size() > 0) {
+            return getRandomUid(length);
+        } else {
+            return uId;
+        }
+    }
+
+    /**
+     * 随机生成7位数字，并且在数据库中不存在
+     *
+     * @return
+     */
+    public int getAccountNumberInt(int accountNumberInt) {
+        List<Users> accountNumberList = userRepository.findByAccountNumber(String.valueOf(accountNumberInt));
+        if (accountNumberList.size() > 0) {
+            return getAccountNumberInt((int) ((Math.random() * 9 + 1) * 1000000));
+        } else {
+            return accountNumberInt;
+        }
     }
 }

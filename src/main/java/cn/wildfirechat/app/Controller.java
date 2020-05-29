@@ -1,12 +1,16 @@
 package cn.wildfirechat.app;
 
+import cn.wildfirechat.app.jpa.Users;
 import cn.wildfirechat.app.pojo.*;
 import cn.wildfirechat.pojos.InputCreateDevice;
 import cn.wildfirechat.pojos.UserOnlineStatus;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.validation.Valid;
 import java.io.IOException;
 
 @RestController
@@ -32,6 +36,45 @@ public class Controller {
         return mService.login(request.getMobile(), request.getCode(), request.getClientId(), request.getPlatform() == null ? 0 : request.getPlatform());
     }
 
+    /**
+     *
+     */
+    @PostMapping(value = "/passLogin")
+    public Object passLogin(@RequestBody Users user,Errors errors) {
+
+        return mService.passLogin(user);
+    }
+
+    /**
+     * 注册用户
+     *
+     * @param user
+     * @return
+     */
+    @PostMapping(value = "/registered", produces = "application/json;charset=UTF-8")
+    public Object registered(@RequestBody @Valid Users user,Errors errors) {
+        if(errors.hasErrors()){
+            return RestResult.error(RestResult.RestCode.ERROR_DATA_ERRORS);
+        }
+        return mService.registered(user);
+
+    }
+
+    /**
+     * 根据手机号修改用户密码
+     *
+     * @param user
+     * @return
+     */
+    @PostMapping(value = "/updatePasswordBymobile", produces = "application/json;charset=UTF-8")
+    public Object updatePasswordBymobile(@RequestBody Users user,Errors errors) {
+        return mService.updatePasswordBymobile(user);
+    }
+
+    @GetMapping(value = "/findUserAll", produces = "application/json;charset=UTF-8")
+    public Object findUserAll() {
+        return mService.findUserAll();
+    }
 
     /* PC扫码操作
     1, PC -> App     创建会话
@@ -104,7 +147,7 @@ public class Controller {
     }
 
     @PostMapping(value = "/things/list_device")
-    public Object getDeviceList()  {
+    public Object getDeviceList() {
         return mService.getDeviceList();
     }
 }
