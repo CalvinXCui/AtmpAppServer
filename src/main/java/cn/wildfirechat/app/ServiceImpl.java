@@ -92,6 +92,7 @@ public class ServiceImpl implements Service {
         }/**/
         try {
             user.setId(UUID.randomUUID().toString());
+            user.setName(userNameGenerator.getUserName(user.getUid()));
             user.setUid(getRandomUid(8));
             user.setAccountNumber(String.valueOf(getAccountNumberInt((int) ((Math.random() * 9 + 1) * 1000000))));
             user.setDt("1");
@@ -188,7 +189,7 @@ public class ServiceImpl implements Service {
             Users user=userList.get(0);
             Subject subject = SecurityUtils.getSubject();
             // 在认证提交前准备 token（令牌）
-            UsernamePasswordToken token = new UsernamePasswordToken(user.getMobile(),"66666");
+            UsernamePasswordToken token = new UsernamePasswordToken(user.getMobile(),user.getPassword());
             // 执行认证登陆
             try {
                 subject.login(token);
@@ -235,6 +236,7 @@ public class ServiceImpl implements Service {
             if (response.isRegister()) {
                 if (!StringUtils.isEmpty(mIMConfig.welcome_for_new_user)) {
                     sendTextMessage(user.getUid(), mIMConfig.welcome_for_new_user);
+                    userRepository.updateRegisterById(user.getRegister(),user.getId());
                 }
             } else {
                 if (!StringUtils.isEmpty(mIMConfig.welcome_for_back_user)) {

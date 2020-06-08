@@ -79,7 +79,7 @@ public class Users {
     @Column(name = "_company")
     private String commpany;
 
-    @Column(name="_clientId")
+    @Column(name="_client_id")
     private String clientId;
     /**
      * 平台

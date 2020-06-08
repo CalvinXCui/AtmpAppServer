@@ -39,7 +39,7 @@ public class Controller {
     /**
      *
      */
-    @PostMapping(value = "/passLogin")
+    @PostMapping(value = "/passLogin", produces = "application/json;charset=UTF-8")
     public Object passLogin(@RequestBody Users user,Errors errors) {
 
         return mService.passLogin(user);

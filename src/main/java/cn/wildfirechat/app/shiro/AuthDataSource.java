@@ -79,18 +79,18 @@ public class AuthDataSource {
         mRecords.remove(mobile);
     }
 
-    public RestResult.RestCode verifyCode(String mobile, String code) {
-        if (StringUtils.isEmpty(superCode) || !code.equals(superCode)) {
-            Record record = mRecords.get(mobile);
-            if (record == null || !record.getCode().equals(code)) {
-                LOG.error("not empty or not correct");
-                return RestResult.RestCode.ERROR_CODE_INCORRECT;
-            }
-            if (System.currentTimeMillis() - record.getTimestamp() > 5 * 60 * 1000) {
-                LOG.error("Code expired. timestamp {}, now {}", record.getTimestamp(), System.currentTimeMillis());
-                return RestResult.RestCode.ERROR_CODE_EXPIRED;
-            }
-        }
+    public RestResult.RestCode verifyCode(String mobile, String password) {
+//        if (StringUtils.isEmpty(superCode) || !code.equals(superCode)) {
+//            Record record = mRecords.get(mobile);
+//            if (record == null || !record.getCode().equals(code)) {
+//                LOG.error("not empty or not correct");
+//                return RestResult.RestCode.ERROR_CODE_INCORRECT;
+//            }
+//            if (System.currentTimeMillis() - record.getTimestamp() > 5 * 60 * 1000) {
+//                LOG.error("Code expired. timestamp {}, now {}", record.getTimestamp(), System.currentTimeMillis());
+//                return RestResult.RestCode.ERROR_CODE_EXPIRED;
+//            }
+//        }
         return RestResult.RestCode.SUCCESS;
     }
 

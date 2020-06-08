@@ -31,13 +31,20 @@ public interface UsersRepository extends JpaRepository<Users, Long> {
     @Transactional
     List<Users> findByMobileIs(String mobile);
 
+
     @Query(value="from Users where displayName = :displayName")
     List<Users> queryByDisplayNameToUsers(String displayName);
+
+    @Modifying(clearAutomatically = true)
+    @Transactional
+    @Query(value = "update Users set register = :register where id = :id")
+    void updateRegisterById(String register,String id);
 
     @Query(value="select * from t_user where _display_name=? and _mobile =?",nativeQuery = true)
     List<Users> queryByDisplayNameAndMobileToUsers(String displayName,String mobile);
 
     @Modifying(clearAutomatically = true)
+    @Transactional
     @Query(value = "update Users set password = :password where id = :id")
     void updatePasswordById(String password,String id);
 
