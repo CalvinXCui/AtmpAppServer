@@ -1,0 +1,45 @@
+20/05/2020 15:53:31,733 [main] INFO  Server 152  - Starting Moquette server. Configuration file path=D:\Desktop\chat\im-app_server\config\wildfirechat.conf
+20/05/2020 15:53:31,740 [main] INFO  ResourceLoaderConfig 40  - Loading configuration. ResourceLoader = file, configName = null.
+20/05/2020 15:53:31,740 [main] INFO  FileResourceLoader 65  - Loading file. Path = D:\Desktop\chat\im-app_server\config\wildfirechat.conf.
+20/05/2020 15:53:31,742 [main] ERROR FileResourceLoader 73  - The file does not exist. Path = D:\Desktop\chat\im-app_server\config\wildfirechat.conf.
+20/05/2020 15:53:31,742 [main] ERROR ResourceLoaderConfig 56  - The resource loader returned no configuration reader. ResourceLoader = file, configName = null.
+20/05/2020 15:56:15,486 [main] INFO  Server 152  - Starting Moquette server. Configuration file path=D:\Desktop\chat\im-app_server\config\wildfirechat.conf
+20/05/2020 15:56:15,493 [main] INFO  ResourceLoaderConfig 40  - Loading configuration. ResourceLoader = file, configName = null.
+20/05/2020 15:56:15,493 [main] INFO  FileResourceLoader 65  - Loading file. Path = D:\Desktop\chat\im-app_server\config\wildfirechat.conf.
+20/05/2020 15:56:15,496 [main] ERROR FileResourceLoader 73  - The file does not exist. Path = D:\Desktop\chat\im-app_server\config\wildfirechat.conf.
+20/05/2020 15:56:15,496 [main] ERROR ResourceLoaderConfig 56  - The resource loader returned no configuration reader. ResourceLoader = file, configName = null.
+20/05/2020 15:57:57,990 [main] INFO  Server 152  - Starting Moquette server. Configuration file path=D:\Desktop\chat\im-app_server\config\wildfirechat.conf
+20/05/2020 15:57:57,994 [main] INFO  ResourceLoaderConfig 40  - Loading configuration. ResourceLoader = file, configName = null.
+20/05/2020 15:57:57,994 [main] INFO  FileResourceLoader 65  - Loading file. Path = D:\Desktop\chat\im-app_server\config\wildfirechat.conf.
+20/05/2020 15:57:57,997 [main] ERROR FileResourceLoader 73  - The file does not exist. Path = D:\Desktop\chat\im-app_server\config\wildfirechat.conf.
+20/05/2020 15:57:57,997 [main] ERROR ResourceLoaderConfig 56  - The resource loader returned no configuration reader. ResourceLoader = file, configName = null.
+20/05/2020 16:35:55,779 [main] INFO  Server 152  - Starting Moquette server. Configuration file path=D:\Desktop\chat\im-app_server\config\wildfirechat.conf
+20/05/2020 16:35:55,786 [main] INFO  ResourceLoaderConfig 40  - Loading configuration. ResourceLoader = file, configName = null.
+20/05/2020 16:35:55,786 [main] INFO  FileResourceLoader 65  - Loading file. Path = D:\Desktop\chat\im-app_server\config\wildfirechat.conf.
+20/05/2020 16:35:55,788 [main] ERROR FileResourceLoader 73  - The file does not exist. Path = D:\Desktop\chat\im-app_server\config\wildfirechat.conf.
+20/05/2020 16:35:55,789 [main] ERROR ResourceLoaderConfig 56  - The resource loader returned no configuration reader. ResourceLoader = file, configName = null.
+20/05/2020 16:35:59,229 [main] INFO  Server 152  - Starting Moquette server. Configuration file path=D:\Desktop\chat\im-app_server\config\wildfirechat.conf
+20/05/2020 16:35:59,235 [main] INFO  ResourceLoaderConfig 40  - Loading configuration. ResourceLoader = file, configName = null.
+20/05/2020 16:35:59,235 [main] INFO  FileResourceLoader 65  - Loading file. Path = D:\Desktop\chat\im-app_server\config\wildfirechat.conf.
+20/05/2020 16:35:59,238 [main] ERROR FileResourceLoader 73  - The file does not exist. Path = D:\Desktop\chat\im-app_server\config\wildfirechat.conf.
+20/05/2020 16:35:59,238 [main] ERROR ResourceLoaderConfig 56  - The resource loader returned no configuration reader. ResourceLoader = file, configName = null.
+20/05/2020 16:36:54,621 [main] INFO  Server 152  - Starting Moquette server. Configuration file path=D:\Desktop\chat\im-app_server\config\wildfirechat.conf
+20/05/2020 16:37:18,818 [main] INFO  ResourceLoaderConfig 40  - Loading configuration. ResourceLoader = file, configName = null.
+20/05/2020 16:37:18,819 [main] INFO  FileResourceLoader 65  - Loading file. Path = D:\Desktop\chat\im-app_server\config\wildfirechat.conf.
+20/05/2020 16:37:18,822 [main] ERROR FileResourceLoader 73  - The file does not exist. Path = D:\Desktop\chat\im-app_server\config\wildfirechat.conf.
+20/05/2020 16:37:18,823 [main] ERROR ResourceLoaderConfig 56  - The resource loader returned no configuration reader. ResourceLoader = file, configName = null.
+20/05/2020 16:37:43,875 [main] INFO  Server 152  - Starting Moquette server. Configuration file path=D:\Desktop\chat\im-app_server\config\wildfirechat.conf
+20/05/2020 16:37:43,879 [main] INFO  ResourceLoaderConfig 40  - Loading configuration. ResourceLoader = file, configName = null.
+20/05/2020 16:37:43,880 [main] INFO  FileResourceLoader 65  - Loading file. Path = D:\Desktop\chat\im-app_server\config\wildfirechat.conf.
+20/05/2020 16:37:43,881 [main] ERROR FileResourceLoader 73  - The file does not exist. Path = D:\Desktop\chat\im-app_server\config\wildfirechat.conf.
+20/05/2020 16:37:43,882 [main] ERROR ResourceLoaderConfig 56  - The resource loader returned no configuration reader. ResourceLoader = file, configName = null.
+20/05/2020 16:45:29,272 [main] INFO  Server 152  - Starting Moquette server. Configuration file path=D:\Desktop\chat\im-app_server\config\wildfirechat.conf
+20/05/2020 16:45:29,279 [main] INFO  ResourceLoaderConfig 40  - Loading configuration. ResourceLoader = file, configName = null.
+20/05/2020 16:45:29,279 [main] INFO  FileResourceLoader 65  - Loading file. Path = D:\Desktop\chat\im-app_server\config\wildfirechat.conf.
+20/05/2020 16:45:29,282 [main] ERROR FileResourceLoader 73  - The file does not exist. Path = D:\Desktop\chat\im-app_server\config\wildfirechat.conf.
+20/05/2020 16:45:29,282 [main] ERROR ResourceLoaderConfig 56  - The resource loader returned no configuration reader. ResourceLoader = file, configName = null.
+20/05/2020 16:49:20,981 [main] INFO  Server 152  - Starting Moquette server. Configuration file path=D:\Desktop\chat\im-app_server\config\wildfirechat.conf
+20/05/2020 16:49:20,988 [main] INFO  ResourceLoaderConfig 40  - Loading configuration. ResourceLoader = file, configName = null.
+20/05/2020 16:49:20,989 [main] INFO  FileResourceLoader 65  - Loading file. Path = D:\Desktop\chat\im-app_server\config\wildfirechat.conf.
+20/05/2020 16:49:20,994 [main] ERROR FileResourceLoader 73  - The file does not exist. Path = D:\Desktop\chat\im-app_server\config\wildfirechat.conf.
+20/05/2020 16:49:20,996 [main] ERROR ResourceLoaderConfig 56  - The resource loader returned no configuration reader. ResourceLoader = file, configName = null.

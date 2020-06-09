@@ -32,7 +32,8 @@ public class ShiroConfig {
 //        filterChainDefinitionMap.put("/findUserAll", "anon");
         filterChainDefinitionMap.put("/updatePasswordBymobile", "anon");
         filterChainDefinitionMap.put("/passLogin/**", "anon");
-
+        filterChainDefinitionMap.put("/findByMobile","anon");
+        filterChainDefinitionMap.put("/findUserByAccountNumber","anon");
 
         filterChainDefinitionMap.put("/send_code", "anon");
         filterChainDefinitionMap.put("/login", "anon");

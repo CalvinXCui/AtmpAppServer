@@ -19,7 +19,9 @@ public interface UsersRepository extends JpaRepository<Users, Long> {
      * 根据账号查询
      * @return
      */
+    @Modifying(clearAutomatically = true)
     @Transactional
+    @Query(value="from Users where accountNumber = :accountNumber")
     List<Users> findByAccountNumber(String accountNumber);
     /**
      * 根据账号和密码查询
@@ -28,7 +30,10 @@ public interface UsersRepository extends JpaRepository<Users, Long> {
     @Transactional
     List<Users> findByAccountNumberAndPassword(String accountNumber , String password);
 
+
+    @Modifying(clearAutomatically = true)
     @Transactional
+    @Query(value="from Users where mobile = :mobile")
     List<Users> findByMobileIs(String mobile);
 
 

@@ -29,7 +29,7 @@ public class AuthDataSource {
 
         boolean increaseAndCheck() {
             long now = System.currentTimeMillis();
-            if (now - startTime > 86400000) {
+            if (now - startTime > 120000) {
                 reset();
                 return true;
             }
@@ -41,42 +41,42 @@ public class AuthDataSource {
         }
     }
 
-    private static ConcurrentHashMap<String, Record> mRecords = new ConcurrentHashMap<>();
+    public static ConcurrentHashMap<String, Record> mRecords = new ConcurrentHashMap<>();
     private static ConcurrentHashMap<String, PCSession> mPCSession = new ConcurrentHashMap<>();
 
     private static ConcurrentHashMap<String, Count> mCounts = new ConcurrentHashMap<>();
 
-    @Value("${sms.super_code}")
-    private String superCode;
+//    @Value("${sms.super_code}")
+//    private String superCode;
 
 
-    public RestResult.RestCode insertRecord(String mobile, String code) {
-        if (!Utils.isMobile(mobile)) {
-            LOG.error("Not valid mobile {}", mobile);
-            return RestResult.RestCode.ERROR_INVALID_MOBILE;
-        }
+    public RestResult.RestCode insertRecord(String nationCode,String mobile, String code) {
+//        if (!Utils.isMobile(mobile)) {
+//            LOG.error("Not valid mobile {}", mobile);
+//            return RestResult.RestCode.ERROR_INVALID_MOBILE;
+//        }
 
-        Record record = mRecords.get(mobile);
+        Record record = mRecords.get(nationCode+mobile);
         if (record != null && System.currentTimeMillis() - record.getTimestamp() < 60 * 1000) {
             LOG.error("Send code over frequency. timestamp {}, now {}", record.getTimestamp(), System.currentTimeMillis());
             return RestResult.RestCode.ERROR_SEND_SMS_OVER_FREQUENCY;
         }
-        Count count = mCounts.get(mobile);
+        Count count = mCounts.get(nationCode+mobile);
         if (count == null) {
             count = new Count();
-            mCounts.put(mobile, count);
+            mCounts.put(nationCode+mobile, count);
         }
 
         if (!count.increaseAndCheck()) {
             LOG.error("Count check failure, already send {} messages today", count.count);
             return RestResult.RestCode.ERROR_SEND_SMS_OVER_FREQUENCY;
         }
-        mRecords.put(mobile, new Record(code, mobile));
+        mRecords.put(nationCode+mobile, new Record(code, nationCode+mobile));
         return RestResult.RestCode.SUCCESS;
     }
 
-    public void clearRecode(String mobile) {
-        mRecords.remove(mobile);
+    public void clearRecode(String nationCode,String mobile) {
+        mRecords.remove(nationCode+mobile);
     }
 
     public RestResult.RestCode verifyCode(String mobile, String password) {

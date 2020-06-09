@@ -21,10 +21,14 @@ import cn.wildfirechat.sdk.GroupAdmin;
 import cn.wildfirechat.sdk.MessageAdmin;
 import cn.wildfirechat.sdk.UserAdmin;
 import cn.wildfirechat.sdk.model.IMResult;
+import com.alibaba.fastjson.JSONObject;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.*;
 import org.apache.shiro.subject.Subject;
 import org.json.JSONException;
+
+import com.alibaba.fastjson.JSONArray;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,7 +87,18 @@ public class ServiceImpl implements Service {
      */
     @Override
     public RestResult registered(Users user) {
-        if(!StringUtils.equalsIgnoreCase(superCode,user.getCode())){
+        LOG.info("当前注册时：用户输入信息：" + "地区号= " + user.getNationCode() + "  手机号= " + user.getMobile());
+        String code;
+        LOG.info("注册时当前用户输入验证码为： " + user.getCode());
+        String newNationCode = BaseUtils.handNationCode(user.getNationCode());
+        if (StringUtils.equalsIgnoreCase(user.getCode(), superCode)) {
+            code = superCode;
+        } else {
+            code = AuthDataSource.mRecords.get(newNationCode + user.getMobile()).getCode();
+        }
+
+//        LOG.info("注册时取得超级验证码 ： " + superCode);
+        if (!StringUtils.equalsIgnoreCase(code, user.getCode())) {
             return RestResult.error(ERROR_CODE_INCORRECT);
         }
         List<Users> users = userRepository.findByMobileIs(user.getMobile());
@@ -92,14 +107,18 @@ public class ServiceImpl implements Service {
         }/**/
         try {
             user.setId(UUID.randomUUID().toString());
-            user.setName(userNameGenerator.getUserName(user.getUid()));
+//            user.setName(userNameGenerator.getUserName(user.getMobile()));
             user.setUid(getRandomUid(8));
             user.setAccountNumber(String.valueOf(getAccountNumberInt((int) ((Math.random() * 9 + 1) * 1000000))));
+            user.setName(user.getAccountNumber());
             user.setDt("1");
             user.setDeleted("0");
+            user.setNationCode(newNationCode);
+            user.setMobile(user.getMobile());
             user.setRegister("0");
             user.setCreateTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
-            userRepository.save(user);
+            Users save = userRepository.save(user);
+            LOG.info("注册生成的用户为： " + save + "  注册生成的用户时间为： " + user.getCreateTime());
             RestResult restResult = RestResult.ok(SUCCESS);
             restResult.setResult(user);
             return restResult;
@@ -117,7 +136,21 @@ public class ServiceImpl implements Service {
      */
     @Override
     public RestResult updatePasswordBymobile(Users user) {
-        if(!StringUtils.equalsIgnoreCase(superCode,user.getCode())){
+        String newNationCode = BaseUtils.handNationCode(user.getNationCode());
+        String code;
+        LOG.info("修改密码时当前用户输入验证码为： " + user.getCode());
+        if (StringUtils.equalsIgnoreCase(user.getCode(), superCode)) {
+            code = superCode;
+        } else {
+            if (AuthDataSource.mRecords.containsKey(newNationCode + user.getMobile())) {
+                code = AuthDataSource.mRecords.get(newNationCode + user.getMobile()).getCode();
+            } else {
+                return RestResult.error(ERROR_CODE_INCORRECT);
+            }
+        }
+
+//        LOG.info("修改密码时取得超级验证码 ： " + superCode);
+        if (!StringUtils.equalsIgnoreCase(code, user.getCode())) {
             return RestResult.error(ERROR_CODE_INCORRECT);
         }
         List<Users> users = userRepository.findByMobileIs(user.getMobile());
@@ -144,29 +177,30 @@ public class ServiceImpl implements Service {
         return result;
     }
 
-
     @Override
-    public RestResult sendCode(String mobile) {
+    public RestResult sendCode(String nationCode, String mobile) {
+        String newNationCode = BaseUtils.handNationCode(nationCode);
         try {
             String code = Utils.getRandomCode(4);
-            RestResult.RestCode restCode = authDataSource.insertRecord(mobile, code);
+            LOG.info("当前手机号 " + mobile + " 生成的验证码为： " + code);
+            RestResult.RestCode restCode = authDataSource.insertRecord(newNationCode, mobile, code);
 
             if (restCode != SUCCESS) {
                 return RestResult.error(restCode);
             }
 
 
-            restCode = smsService.sendCode(mobile, code);
+            restCode = smsService.sendCode(newNationCode, mobile, code);
             if (restCode == RestResult.RestCode.SUCCESS) {
                 return RestResult.ok(restCode);
             } else {
-                authDataSource.clearRecode(mobile);
+                authDataSource.clearRecode(newNationCode, mobile);
                 return RestResult.error(restCode);
             }
         } catch (JSONException e) {
             // json解析错误
             e.printStackTrace();
-            authDataSource.clearRecode(mobile);
+            authDataSource.clearRecode(newNationCode, mobile);
         }
         return RestResult.error(RestResult.RestCode.ERROR_SERVER_ERROR);
     }
@@ -180,16 +214,17 @@ public class ServiceImpl implements Service {
      */
     @Override
     public RestResult passLogin(Users users) {
+        LOG.info("Login passLogin");
         /**
          * 查询用户是否存在
          */
         List<Users> userList = userRepository.findByAccountNumberAndPassword(users.getAccountNumber().trim(), users.getPassword().trim());
 
         if (userList.size() > 0) {
-            Users user=userList.get(0);
+            Users user = userList.get(0);
             Subject subject = SecurityUtils.getSubject();
             // 在认证提交前准备 token（令牌）
-            UsernamePasswordToken token = new UsernamePasswordToken(user.getMobile(),user.getPassword());
+            UsernamePasswordToken token = new UsernamePasswordToken(user.getMobile(), superCode);
             // 执行认证登陆
             try {
                 subject.login(token);
@@ -215,7 +250,8 @@ public class ServiceImpl implements Service {
             //使用用户id获取token
             IMResult<OutputGetIMTokenData> tokenResult = null;
             try {
-                tokenResult = UserAdmin.getUserToken(user.getUid(), user.getClientId(), Integer.valueOf(user.getPlatform()));
+                tokenResult = UserAdmin.getUserToken(user.getUid(), user.getClientId(), user.getPlatform() == null ? 0 : user.getPlatform());
+                LOG.info("账号登录clientId=" + user.getClientId());
 
                 if (tokenResult.getErrorCode() != ErrorCode.ERROR_CODE_SUCCESS) {
                     LOG.error("Get user failure {}", tokenResult.code);
@@ -230,13 +266,14 @@ public class ServiceImpl implements Service {
             //返回用户id，token和是否新建
             LoginResponse response = new LoginResponse();
             response.setUserId(user.getUid());
+            response.setJsonObject((JSONObject) JSONObject.toJSON(user));
             response.setToken(tokenResult.getResult().getToken());
-            response.setRegister(Integer.valueOf(user.getRegister())==0?true:false);
-
+            response.setRegister(Integer.valueOf(user.getRegister()) == 0 ? true : false);
+            LOG.info("账号密码登陆回传 = " + (JSONObject) JSONObject.toJSON(response));
             if (response.isRegister()) {
                 if (!StringUtils.isEmpty(mIMConfig.welcome_for_new_user)) {
                     sendTextMessage(user.getUid(), mIMConfig.welcome_for_new_user);
-                    userRepository.updateRegisterById(user.getRegister(),user.getId());
+                    userRepository.updateRegisterById("1", user.getId());
                 }
             } else {
                 if (!StringUtils.isEmpty(mIMConfig.welcome_for_back_user)) {
@@ -250,11 +287,40 @@ public class ServiceImpl implements Service {
         }
     }
 
+    /**
+     * 手机验证码登录
+     *
+     * @param nationCode 地区号
+     * @param mobile     手机号
+     * @param code       验证码
+     * @param clientId
+     * @param platform
+     * @return
+     */
     @Override
-    public RestResult login(String mobile, String password, String clientId, int platform) {
+    public RestResult login(LoginRequest request) {
+        LOG.info("Login login");
+        String newNationCode = BaseUtils.handNationCode(request.getNationCode());
+        String s_code;
+        LOG.info("手机验证码登录时，当前用户输入验证码为： " + request.getCode());
+        if (StringUtils.equalsIgnoreCase(request.getCode(), superCode)) {
+            s_code = superCode;
+        } else {
+            if (AuthDataSource.mRecords.containsKey(newNationCode + request.getMobile())) {
+                s_code = AuthDataSource.mRecords.get(newNationCode + request.getMobile()).getCode();
+            } else {
+                return RestResult.error(ERROR_DATA_ERRORS);
+            }
+        }
+
+        if (!StringUtils.equalsIgnoreCase(s_code, request.getCode())) {
+            return RestResult.error(ERROR_CODE_INCORRECT);
+        }
+
         Subject subject = SecurityUtils.getSubject();
         // 在认证提交前准备 token（令牌）
-        UsernamePasswordToken token = new UsernamePasswordToken(mobile, password);
+
+        UsernamePasswordToken token = new UsernamePasswordToken(request.getMobile(), superCode);
         // 执行认证登陆
         try {
             subject.login(token);
@@ -279,61 +345,75 @@ public class ServiceImpl implements Service {
 
 
         try {
-            //使用电话号码查询用户信息。
-            IMResult<InputOutputUserInfo> userResult = UserAdmin.getUserByMobile(mobile);
+            //使用电话号码查询用户信息。<这个查询返回的数据不完整>
+//            IMResult<InputOutputUserInfo> userResult = UserAdmin.getUserByMobile(mobile);
+            /**
+             * 根据手机号查询用户
+             */
+            List<Users> byMobileIs = userRepository.findByMobileIs(request.getMobile());
 
             //如果用户信息不存在，创建用户
-            InputOutputUserInfo user;
-            boolean isNewUser = false;
-            if (userResult.getErrorCode() == ErrorCode.ERROR_CODE_NOT_EXIST) {
+            InputOutputUserInfo user_;
+            Users user;
+            if (byMobileIs.size() <= 0) {
                 LOG.info("User not exist, try to create");
-                user = new InputOutputUserInfo();
-                String userName = userNameGenerator.getUserName(mobile);
-                user.setName(userName);
-                if (mIMConfig.use_random_name) {
-                    String displayName = "用户" + (int) (Math.random() * 10000);
-                    user.setDisplayName(displayName);
-                } else {
-                    user.setDisplayName(mobile);
-                }
-                user.setMobile(mobile);
-                IMResult<OutputCreateUser> userIdResult = UserAdmin.createUser(user);
-                if (userIdResult.getErrorCode() == ErrorCode.ERROR_CODE_SUCCESS) {
-                    user.setUserId(userIdResult.getResult().getUserId());
-                    isNewUser = true;
-                } else {
-                    LOG.info("Create user failure {}", userIdResult.code);
+                try {
+                    user = new Users();
+                    user.setId(UUID.randomUUID().toString());
+                    user.setUid(getRandomUid(8));
+                    if (mIMConfig.use_random_name) {
+                        String displayName = "用户" + (int) (Math.random() * 10000);
+                        user.setDisplayName(displayName);
+                    } else {
+                        user.setDisplayName(request.getMobile());
+                    }
+                    user.setNationCode(newNationCode);
+                    user.setMobile(request.getMobile());
+                    user.setPassword(request.getPassword());
+                    user.setAccountNumber(String.valueOf(getAccountNumberInt((int) ((Math.random() * 9 + 1) * 1000000))));
+                    user.setName(user.getAccountNumber());
+                    user.setDt("1");
+                    user.setDeleted("0");
+                    user.setRegister("0");
+                    user.setCreateTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+                    user.setPlatform(request.getPlatform());
+                    user.setClientId(request.getClientId());
+                    user.setCode(request.getCode());
+                    Users save = userRepository.save(user);
+                    LOG.info("注册生成的用户为： " + save + "  注册生成的用户时间为： " + user.getCreateTime());
+                } catch (Exception e) {
+                    LOG.info("当前手机号未在系统注册，登陆时自动创建用户失败");
                     return RestResult.error(RestResult.RestCode.ERROR_SERVER_ERROR);
                 }
-            } else if (userResult.getCode() != 0) {
-                LOG.error("Get user failure {}", userResult.code);
-                return RestResult.error(RestResult.RestCode.ERROR_SERVER_ERROR);
             } else {
-                user = userResult.getResult();
+                user = byMobileIs.get(0);
             }
 
             //使用用户id获取token
-            IMResult<OutputGetIMTokenData> tokenResult = UserAdmin.getUserToken(user.getUserId(), clientId, platform);
+            IMResult<OutputGetIMTokenData> tokenResult = tokenResult = UserAdmin.getUserToken(user.getUid(), request.getClientId(), request.getPlatform() == null ? 0 : request.getPlatform());
+            LOG.info("手机登录clientId=" + request.getClientId());
             if (tokenResult.getErrorCode() != ErrorCode.ERROR_CODE_SUCCESS) {
                 LOG.error("Get user failure {}", tokenResult.code);
                 return RestResult.error(RestResult.RestCode.ERROR_SERVER_ERROR);
             }
 
-            subject.getSession().setAttribute("userId", user.getUserId());
+            subject.getSession().setAttribute("userId", user.getUid());
 
             //返回用户id，token和是否新建
             LoginResponse response = new LoginResponse();
-            response.setUserId(user.getUserId());
+            response.setUserId(user.getUid());
+            response.setJsonObject((JSONObject) JSONObject.toJSON(user));
             response.setToken(tokenResult.getResult().getToken());
-            response.setRegister(isNewUser);
-
-            if (isNewUser) {
+            response.setRegister(StringUtils.equalsIgnoreCase(user.getRegister(), "0") ? true : false);
+            LOG.info("手机验证码登录，返回信息 ： " + (JSONObject) JSONObject.toJSON(response));
+            if (response.isRegister()) {
                 if (!StringUtils.isEmpty(mIMConfig.welcome_for_new_user)) {
-                    sendTextMessage(user.getUserId(), mIMConfig.welcome_for_new_user);
+                    sendTextMessage(user.getUid(), mIMConfig.welcome_for_new_user);
+                    userRepository.updateRegisterById("1", user.getId());
                 }
             } else {
                 if (!StringUtils.isEmpty(mIMConfig.welcome_for_back_user)) {
-                    sendTextMessage(user.getUserId(), mIMConfig.welcome_for_back_user);
+                    sendTextMessage(user.getUid(), mIMConfig.welcome_for_back_user);
                 }
             }
 
@@ -358,13 +438,13 @@ public class ServiceImpl implements Service {
         try {
             IMResult<SendMessageResult> resultSendMessage = MessageAdmin.sendMessage("admin", conversation, payload);
             if (resultSendMessage != null && resultSendMessage.getErrorCode() == ErrorCode.ERROR_CODE_SUCCESS) {
-                LOG.info("send message success");
+                LOG.info("发送消息成功");
             } else {
-                LOG.error("send message error {}", resultSendMessage != null ? resultSendMessage.getErrorCode().code : "unknown");
+                LOG.error("发送消息错误 {}", resultSendMessage != null ? resultSendMessage.getErrorCode().code : "unknown");
             }
         } catch (Exception e) {
             e.printStackTrace();
-            LOG.error("send message error {}", e.getLocalizedMessage());
+            LOG.error("发送消息错误 {}", e.getLocalizedMessage());
         }
 
     }
@@ -611,4 +691,43 @@ public class ServiceImpl implements Service {
             return accountNumberInt;
         }
     }
+
+    /**
+     * 账号查询
+     *
+     * @param accountNumber 账号
+     * @return
+     */
+    public RestResult findByAccountNumber(String accountNumber) {
+        List<Users> usersList = userRepository.findByAccountNumber(accountNumber);
+        if (usersList.size() <= 0) {
+            return RestResult.error(ERROR_DATA_NOT_EXISTS);
+        } else {
+            FindUsersResponse response = new FindUsersResponse();
+            response.setUser((JSONObject) JSONObject.toJSON(usersList.get(0)));
+            LOG.info("根据账号搜索回传信息 ： " + (JSONObject) JSONObject.toJSON(response));
+            return RestResult.ok(response);
+        }
+    }
+
+    /**
+     * 地区号+手机号查询
+     *
+     * @param nationCode 地区号
+     * @param mobile     手机号
+     * @return
+     */
+    public RestResult findByMobile(String mobile) {
+        LOG.info("service层实现的手机号搜索：" + mobile);
+        List<Users> usersList = userRepository.findByMobileIs(mobile);
+        if (usersList.size() <= 0) {
+            return RestResult.error(ERROR_DATA_NOT_EXISTS);
+        } else {
+            FindUsersResponse response = new FindUsersResponse();
+            response.setUser((JSONObject) JSONObject.toJSON(usersList.get(0)));
+            LOG.info("根据手机号搜索用户： " + (JSONObject) JSONObject.toJSON(response));
+            return RestResult.ok(response);
+        }
+    }
+
 }

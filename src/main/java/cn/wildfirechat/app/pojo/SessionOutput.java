@@ -1,11 +1,29 @@
 package cn.wildfirechat.app.pojo;
 
 public class SessionOutput {
+    /**
+     *
+     */
     private String token;
+    /**
+     *
+     */
     private int status;
+    /**
+     *
+     */
     private long expired;
+    /**
+     *
+     */
     private int platform;
+    /**
+     *
+     */
     private String device_name;
+    /**
+     *
+     */
     private String userId;
 
     public String getUserId() {

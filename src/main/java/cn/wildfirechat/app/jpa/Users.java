@@ -1,6 +1,7 @@
 package cn.wildfirechat.app.jpa;
 
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -56,12 +57,15 @@ public class Users {
      */
     @Column(name = "_gender")
     private String gender;
+
+    @Column(name = "_nation_code")
+    @NotBlank(message = "手机地区号不能为空")
+    private String nationCode;
     /**
      * 手机号
      */
     @Column(name = "_mobile")
     @NotBlank(message = "手机号不能为空")
-    @Digits(integer = 11,fraction = 0,message = "手机号长度不符合")
     private String mobile;
     /**
      * 邮箱
@@ -115,6 +119,7 @@ public class Users {
      *
      */
     @Column(name = "_create_time")
+    @JsonFormat(locale="zh", timezone="GMT+8", pattern="yyyy-MM-dd HH:mm:ss")
     private String createTime;
     /**
      *

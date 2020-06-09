@@ -54,7 +54,9 @@ public class ScanCodeRealm extends AuthorizingRealm {
         String token = (String) authenticationToken.getPrincipal();
         PCSession session = authDataSource.getSession(token, false);
         if (session == null) {
+            authDataSource.createSession("", token, 0);
             throw new AuthenticationException("会话不存在");
+
         }
         LOG.debug("session会话=="+session);
         return new SimpleAuthenticationInfo(token, token, getName());

@@ -5,6 +5,7 @@ import cn.wildfirechat.app.jpa.Users;
 import cn.wildfirechat.app.pojo.ConfirmSessionRequest;
 import cn.wildfirechat.app.pojo.CreateSessionRequest;
 import cn.wildfirechat.app.pojo.GroupAnnouncementPojo;
+import cn.wildfirechat.app.pojo.LoginRequest;
 import cn.wildfirechat.pojos.InputCreateDevice;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -19,8 +20,8 @@ public interface Service {
 
     /**
      *
-     * @param mobile
-     * @param password
+     * @param
+     * @param
      * @return
      */
     RestResult updatePasswordBymobile(Users user);
@@ -39,8 +40,8 @@ public interface Service {
      */
     RestResult passLogin(Users user);
 
-    RestResult sendCode(String mobile);
-    RestResult login(String mobile, String code, String clientId, int platform);
+    RestResult sendCode(String nationCode,String mobile);
+    RestResult login(LoginRequest request);
 
     RestResult createPcSession(CreateSessionRequest request);
     RestResult loginWithSession(String token);
@@ -55,6 +56,6 @@ public interface Service {
 
     RestResult addDevice(InputCreateDevice createDevice);
     RestResult getDeviceList();
-
-
+    RestResult findByAccountNumber(String accountNumber);
+    RestResult findByMobile(String mobile);
 }

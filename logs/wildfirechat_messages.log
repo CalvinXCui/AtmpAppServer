@@ -1,0 +1,18 @@
+20/05/2020 15:53:31,742 [main] ERROR FileResourceLoader 73  - The file does not exist. Path = D:\Desktop\chat\im-app_server\config\wildfirechat.conf.
+20/05/2020 15:53:31,742 [main] ERROR ResourceLoaderConfig 56  - The resource loader returned no configuration reader. ResourceLoader = file, configName = null.
+20/05/2020 15:56:15,496 [main] ERROR FileResourceLoader 73  - The file does not exist. Path = D:\Desktop\chat\im-app_server\config\wildfirechat.conf.
+20/05/2020 15:56:15,496 [main] ERROR ResourceLoaderConfig 56  - The resource loader returned no configuration reader. ResourceLoader = file, configName = null.
+20/05/2020 15:57:57,997 [main] ERROR FileResourceLoader 73  - The file does not exist. Path = D:\Desktop\chat\im-app_server\config\wildfirechat.conf.
+20/05/2020 15:57:57,997 [main] ERROR ResourceLoaderConfig 56  - The resource loader returned no configuration reader. ResourceLoader = file, configName = null.
+20/05/2020 16:35:55,788 [main] ERROR FileResourceLoader 73  - The file does not exist. Path = D:\Desktop\chat\im-app_server\config\wildfirechat.conf.
+20/05/2020 16:35:55,789 [main] ERROR ResourceLoaderConfig 56  - The resource loader returned no configuration reader. ResourceLoader = file, configName = null.
+20/05/2020 16:35:59,238 [main] ERROR FileResourceLoader 73  - The file does not exist. Path = D:\Desktop\chat\im-app_server\config\wildfirechat.conf.
+20/05/2020 16:35:59,238 [main] ERROR ResourceLoaderConfig 56  - The resource loader returned no configuration reader. ResourceLoader = file, configName = null.
+20/05/2020 16:37:18,822 [main] ERROR FileResourceLoader 73  - The file does not exist. Path = D:\Desktop\chat\im-app_server\config\wildfirechat.conf.
+20/05/2020 16:37:18,823 [main] ERROR ResourceLoaderConfig 56  - The resource loader returned no configuration reader. ResourceLoader = file, configName = null.
+20/05/2020 16:37:43,881 [main] ERROR FileResourceLoader 73  - The file does not exist. Path = D:\Desktop\chat\im-app_server\config\wildfirechat.conf.
+20/05/2020 16:37:43,882 [main] ERROR ResourceLoaderConfig 56  - The resource loader returned no configuration reader. ResourceLoader = file, configName = null.
+20/05/2020 16:45:29,282 [main] ERROR FileResourceLoader 73  - The file does not exist. Path = D:\Desktop\chat\im-app_server\config\wildfirechat.conf.
+20/05/2020 16:45:29,282 [main] ERROR ResourceLoaderConfig 56  - The resource loader returned no configuration reader. ResourceLoader = file, configName = null.
+20/05/2020 16:49:20,994 [main] ERROR FileResourceLoader 73  - The file does not exist. Path = D:\Desktop\chat\im-app_server\config\wildfirechat.conf.
+20/05/2020 16:49:20,996 [main] ERROR ResourceLoaderConfig 56  - The resource loader returned no configuration reader. ResourceLoader = file, configName = null.

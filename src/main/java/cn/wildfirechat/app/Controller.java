@@ -4,6 +4,8 @@ import cn.wildfirechat.app.jpa.Users;
 import cn.wildfirechat.app.pojo.*;
 import cn.wildfirechat.pojos.InputCreateDevice;
 import cn.wildfirechat.pojos.UserOnlineStatus;
+import com.alibaba.fastjson.JSONObject;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.Errors;
@@ -14,6 +16,7 @@ import javax.validation.Valid;
 import java.io.IOException;
 
 @RestController
+@Slf4j
 public class Controller {
     @Autowired
     private Service mService;
@@ -28,12 +31,13 @@ public class Controller {
      */
     @PostMapping(value = "/send_code", produces = "application/json;charset=UTF-8")
     public Object sendCode(@RequestBody SendCodeRequest request) {
-        return mService.sendCode(request.getMobile());
+        log.info("当前进行验证的手机号码为： +"+request.getNationCode()+request.getMobile());
+        return mService.sendCode(request.getNationCode(),request.getMobile());
     }
 
     @PostMapping(value = "/login", produces = "application/json;charset=UTF-8")
     public Object login(@RequestBody LoginRequest request) {
-        return mService.login(request.getMobile(), request.getCode(), request.getClientId(), request.getPlatform() == null ? 0 : request.getPlatform());
+        return mService.login(request);
     }
 
     /**
@@ -69,6 +73,17 @@ public class Controller {
     @PostMapping(value = "/updatePasswordBymobile", produces = "application/json;charset=UTF-8")
     public Object updatePasswordBymobile(@RequestBody Users user,Errors errors) {
         return mService.updatePasswordBymobile(user);
+    }
+    @PostMapping(value = "/findUserByAccountNumber", produces = "application/json;charset=UTF-8")
+    public Object findUserByAccountNumber(@RequestBody FindUsersRequest request){
+        log.info("账号搜索用户：参数 = " + (JSONObject)JSONObject.toJSON(request));
+        return mService.findByAccountNumber(request.getAccountNumber());
+    }
+
+    @PostMapping(value = "/findByMobile", produces = "application/json;charset=UTF-8")
+    public Object findByMobile(@RequestBody FindUsersRequest request){
+        log.info("手机号搜索用户：参数 = " + (JSONObject)JSONObject.toJSON(request));
+        return mService.findByMobile(request.getMobiles());
     }
 
     @GetMapping(value = "/findUserAll", produces = "application/json;charset=UTF-8")
@@ -150,4 +165,5 @@ public class Controller {
     public Object getDeviceList() {
         return mService.getDeviceList();
     }
+
 }

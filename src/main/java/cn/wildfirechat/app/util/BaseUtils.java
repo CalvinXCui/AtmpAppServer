@@ -62,4 +62,13 @@ public class BaseUtils {
         }
         return sb.toString();
     }
+
+    /**
+     * 去除字符串数字前面的0
+     * @param nationCode 字符串数字
+     * @return 去除后
+     */
+    public static String handNationCode(String nationCode){
+        return nationCode.replaceFirst("^0*", "");
+    }
 }
